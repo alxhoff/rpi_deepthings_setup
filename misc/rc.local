@@ -19,7 +19,4 @@ fi
 
 systemctl enable ssh.service
 systemctl start ssh.service
-ip link set dev eth0 down
-ip link set dev eth0 address 02:b1:fd:f0:48:76
-ip link set dev eth0 up
 exit 0

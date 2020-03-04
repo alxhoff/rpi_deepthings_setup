@@ -40,5 +40,5 @@ wait
 systemctl status hostapd
 systemctl status dnsmasq
 
-#Add routing rules such that all 192.168.1.* traffic routes through eth0
-#ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+bash $CUR_DIR/setup_ipv4_forwarding.sh
