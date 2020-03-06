@@ -147,7 +147,6 @@ then
                     echo "Non-data source"
 		    start_n_data_edge $DEV_IP $EDGE_DEV_NUM
                     ;;
-
                 esac
                 ;;
 
