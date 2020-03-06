@@ -48,7 +48,7 @@ The cluster (including the gateway device) need to have DeepThings setup and the
 
 Test involve the setup of a test system architecture where each device must be given its role in the DeepThings system. See [DeepThings](https://github.com/rafzi/DeepThings#running) for the manual setup of a test. To help automate this the script [`run_demo.sh`](run_demo.sh) allows for automatic disstribution of a test or the preconfiguration of a test through a `.conf` file, such as [`devices.conf`](devices.conf).
 
-Automatic distribution happens when [`run_demo.sh`](run_demo.sh) is called with the `--auto` option, see `--help` for more information. If automatic distribution is not used then the `.conf` file is used to identify what type of device each device should be configured as. Each line of the file uses the following converntion.
+Automatic distribution happens when [`run_demo.sh`](run_demo.sh) is called witout a configuration file, passing in using the `-c` option, see `--help` for more information. If automatic distribution is not used then the `.conf` file is used to identify what type of device each device should be configured as. Each line of the file uses the following converntion.
 
 ```
 {H,G,E{x}{d,n}} IPv4_address
