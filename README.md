@@ -17,7 +17,7 @@ To setup the gateway RPi you must first connect it manaually to an internet conn
                                                   | - ipv4 forwarding via gateway - |
                                                   v                                 V
 +--------+                                   +--------+                        +--------+
-| Your   |   -- WiFi SSID:`RPi Gateway` -->  |Gateway |  ------- eth0 ------>  |  Rpi   |
+| Host   |   -- WiFi SSID:`RPi Gateway` -->  |Gateway |  ------- eth0 ------>  |  Rpi   |
 |   PC   |         (192.168.4.0/24)          |  RPi   |    (192.168.1.0/24)    | Cluster|
 +--------+                                   +--------+    seperate switch     +--------+
 
