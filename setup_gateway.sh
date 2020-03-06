@@ -15,18 +15,18 @@ wait
 systemctl stop hostapd
 wait
 
-cp dhcpcd.conf /etc/dhcpcd.conf
+cp confs/dhcpcd.conf /etc/dhcpcd.conf
 
 service dhcpcd restart
 wait
 
-cp dnsmasq-eth0.conf /etc/dnsmasq.d/dnsmasq-eth0.conf
-cp dnsmasq-wlan0.conf /etc/dnsmasq.d/dnsmasq-wlan0.conf
+cp confs/dnsmasq-eth0.conf /etc/dnsmasq.d/dnsmasq-eth0.conf
+cp confs/dnsmasq-wlan0.conf /etc/dnsmasq.d/dnsmasq-wlan0.conf
 
 systemctl start dnsmasq
 wait
 
-cp hostapd.conf /etc/hostapd/hostapd.conf
+cp confs/hostapd.conf /etc/hostapd/hostapd.conf
 
 echo 'DAEMON_CONF="/etc/hostapd/hostapd.conf"' | tee -a /etc/default/hostapd
 
