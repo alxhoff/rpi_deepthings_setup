@@ -15,19 +15,14 @@ CONNECTED_NODES=($(bash $CUR_DIR/get_nodes.sh))
 
 echo "Nodes found: ${CONNECTED_NODES[*]}"
 
-sshpass_command() {
-	sshpass -p 'raspberry' ssh -o StrictHostKeyChecking=no pi@$1 $2
-}
-
 setup_dev() {
- 	sshpass_command $1 'wget https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_deepthings.sh'
-	wait
-	sshpass_command $1 'sudo chmod +x setup_deepthings.sh'
+	bash $CUR_DIR/ssh_command.sh $1 'sudo rm -rf ~/*'
+ 	bash $CUR_DIR/ssh_command.sh $1 'wget https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_deepthings.sh'
+	bash $CUR_DIR/ssh_command.sh $1 'sudo chmod +x setup_deepthings.sh'
 	# sshpass_command $1 'sudo ./setup_deepthings.sh'
-	wait
 }
 
-#./setup_deepthings.sh &
+./setup_deepthings.sh &
 
 for NODE in "${CONNECTED_NODES[@]}"
 do
