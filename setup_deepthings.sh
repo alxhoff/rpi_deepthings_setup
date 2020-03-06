@@ -5,6 +5,18 @@ if [ "$EUID" -ne 0 ]
 	exit
 fi
 
+echo "#### Getting prereqs ####"
+
+echo Base prereqs
+apt-get update --fix-missing
+apt-get upgrade -y
+apt-get install -y build-essential git python3-pip clang ninja-build vim
+
+echo Python prereqs
+ln -sf /usr/bin/python3.7 /usr/bin/python
+pip install --upgrade git+https://github.com/Maratyszcza/PeachPy
+pip install --upgrade git+https://github.com/Maratyszcza/confu
+
 #Set up DeepThings
 printf "Getting DeepThings"
 
@@ -12,7 +24,7 @@ if [[ -d "DeepThings" ]]; then
 	printf "....Already exists\n"
 else
 	printf "\n"
-	git clone https://gitlab.lrz.de/de-tum-ei-eda-esl/DeepThings.git
+	git clone https://github.com/rafzi/DeepThings
 	wait
 fi
 

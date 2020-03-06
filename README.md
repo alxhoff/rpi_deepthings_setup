@@ -1,10 +1,3 @@
-# TODO
-
-- Setup script
-  - ARP scan dev list
-  - Setup script per dev
-- Host dev test scripts
-
 # Setup Architecture
 
 There is a central controlling RPi that acts as a SSH AP as well as an internet bridge for the rest of the Pis.
@@ -37,7 +30,7 @@ Initially the host RPi must be set up as it plays a crucial role. The gateway RP
 The inital step requires the setting up of the gateway's networks such that it is accessible via ssh over the `RPiGateway` WiFi network. Initially on a terminal you must pull the [`setup_gateway.sh`](setup_gateway.sh) script onto the device and execute it.
 
 ``` bash
-https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_gateway.sh
+wget https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_gateway.sh
 sudo ./setup_gateway.sh
 ```
 
