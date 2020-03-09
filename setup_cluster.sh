@@ -11,18 +11,18 @@ if [ "" == "$PKG_OK" ]; then
 fi
 
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-CONNECTED_NODES=($(bash $CUR_DIR/get_nodes.sh))
+CONNECTED_NODES=($(bash $CUR_DIR/get_nodes.sh eth0))
 
 echo "Nodes found: ${CONNECTED_NODES[*]}"
 
 setup_dev() {
 	bash $CUR_DIR/ssh_command.sh $1 'sudo rm -rf ~/*'
- 	bash $CUR_DIR/ssh_command.sh $1 'wget https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_deepthings.sh'
+ 	bash $CUR_DIR/ssh_command.sh $1 'wget https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_deepthings.sh &>/dev/null'
 	bash $CUR_DIR/ssh_command.sh $1 'sudo chmod +x setup_deepthings.sh'
-	# sshpass_command $1 'sudo ./setup_deepthings.sh'
+	bash $CUR_DIR/ssh_command.sh $1 'sudo ./setup_deepthings.sh &>/dev/null &'
 }
 
-./setup_deepthings.sh &
+./setup_deepthings.sh ../ &>/dev/null &
 
 for NODE in "${CONNECTED_NODES[@]}"
 do
