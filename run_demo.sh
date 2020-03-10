@@ -32,6 +32,22 @@ automatic_run()
     EDGE_NODE_IPS=($(bash $CUR_DIR/get_nodes.sh eth0))
 
     echo "Edge devs: ${EDGE_NODE_IPS[*]}"
+    DATA_EDGE_IP="${EDGE_NODE_IPS[0]}"
+    NON_DATA_EDGE_IPS="${EDGE_NODE_IPS[@]:1}"
+    echo "Data edge dev: $DATA_EDGE_IP"
+    echo "Non-data edge devs: ${NON_DATA_EDGE_IPS[*]}"
+
+    start_gateway $GATEWAY_IP
+    start_data_edge $DATA_EDGE_IP
+    for IP in "${NON_DATA_EDGE_IPS[@]}"
+    do
+	start_n_data_edge $IP
+    done
+
+    echo "Start commands sent, waiting a little bit before starting"
+    sleep 20
+
+    start_host $HOST_IP
 }
 
 start_host()
@@ -49,13 +65,13 @@ start_gateway()
 start_data_edge()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode data_source -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode data_source -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
 }
 
 start_n_data_edge()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode non_data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode non_data_source -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode non_data_source -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
 }
 
 key="$1"
