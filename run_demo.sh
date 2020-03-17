@@ -1,5 +1,5 @@
 #!/bin/bash
-    
+
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 print_usage()
@@ -14,6 +14,15 @@ print_usage()
     exit 0
 }
 
+set_tc_rules()
+{
+    echo ""
+       # bash $CUR_DIR/ssh_command.sh $1 'tc qdisc del dev eth0 root'
+       # bash $CUR_DIR/ssh_command.sh $1 'tc qdisc add dev eth0 root handle 1: htb default 12'
+       # bash $CUR_DIR/ssh_command.sh $1 'tc class add dev eth0 parent 1:1 classid 1:12 htb rate 100mbit ceil 100mbit'
+       # bash $CUR_DIR/ssh_command.sh $1 'tc qdisc add dev eth0 parent 1:12 netem limit 10000000'
+}
+
 automatic_run()
 {
     echo "Automatic run!"
@@ -22,6 +31,7 @@ automatic_run()
     GATEWAY_IP=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
 
     echo "Gateway: $GATEWAY_IP"
+    set_tc_rules $GATEWAY_IP
 
     #Host dev is connected to wlan0
     HOST_IP=($(bash $CUR_DIR/get_nodes.sh wlan0))
@@ -30,8 +40,30 @@ automatic_run()
 
     #All other devs on eth0 are edge devices
     EDGE_NODE_IPS=($(bash $CUR_DIR/get_nodes.sh eth0))
+    for IP in "${EDGE_NODE_IPS[@]}"
+    do
+        set_tc_rules $IP
+    done
 
     echo "Edge devs: ${EDGE_NODE_IPS[*]}"
+    DATA_EDGE_IP="${EDGE_NODE_IPS[0]}"
+    NON_DATA_EDGE_IPS="${EDGE_NODE_IPS[@]:2}"
+    echo "Data edge dev: $DATA_EDGE_IP"
+    echo "Non-data edge devs: ${NON_DATA_EDGE_IPS[*]}"
+
+    HOST_IP=$DATA_EDGE_IP
+    start_gateway $GATEWAY_IP
+    start_data_edge $DATA_EDGE_IP
+    for IP in "${NON_DATA_EDGE_IPS[@]}"
+    do
+	start_n_data_edge $IP
+    done
+    start_n_data_debug_edge $IP
+
+    echo "Start commands sent, waiting a little bit before starting"
+    sleep 20
+
+    #start_host $HOST_IP
 }
 
 start_host()
@@ -49,13 +81,19 @@ start_gateway()
 start_data_edge()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode data_source -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "nohup ./DeepThings/deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
 }
 
 start_n_data_edge()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode non_data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode non_data_source -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "nohup ./DeepThings/deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+}
+
+start_n_data_debug_edge()
+{
+        # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode non_data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
+	bash $CUR_DIR/ssh_command.sh $1 "gdbserver :2222 ./DeepThings/deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS &"
 }
 
 key="$1"
@@ -123,12 +161,13 @@ then
 
             H )
                 echo "Host device $DEV_IP"
-		start_host $DEV_IP
+		        start_host $DEV_IP
                 ;;
 
             G )
                 echo "Gateway device $DEV_IP"
-		start_gateway $DEV_IP
+                set_tc_rules $DEV_IP
+		        start_gateway $DEV_IP
                 ;;
 
             E )
@@ -140,12 +179,14 @@ then
 
                 d )
                     echo "Data source"
-		    start_data_edge $DEV_IP $EDGE_DEV_NUM
+                    set_tc_rules $DEV_IP
+		            start_data_edge $DEV_IP $EDGE_DEV_NUM
                     ;;
 
                 n )
                     echo "Non-data source"
-		    start_n_data_edge $DEV_IP $EDGE_DEV_NUM
+                    set_tc_rules $DEV_IP
+		            start_n_data_edge $DEV_IP $EDGE_DEV_NUM
                     ;;
                 esac
                 ;;
