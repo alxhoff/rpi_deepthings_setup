@@ -1,17 +1,26 @@
 #!/bin/bash
 
+if [ "$EUID" -ne 0 ]
+	then echo "Please run as root"
+	exit
+fi
+
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-CONNECTED_NODES=($(bash $CUR_DIR/get_nodes.sh))
+CONNECTED_NODES=($(bash $CUR_DIR/get_nodes.sh eth0))
 
 BUILD_OPTIONS=""
 
 build_cluster(){
     for NODE in "${CONNECTED_NODES[@]}"
     do
-        pushd /home/pi/DeepThings
-        make clean_all
-        make $BUILD_OPTIONS
+	echo "Started build on $NODE with build options '$BUILD_OPTIONS'"
+        bash $CUR_DIR/ssh_command.sh $NODE "make -C /home/pi/DeepThings clean_all &> /dev/null" 
+        wait
+        bash $CUR_DIR/ssh_command.sh $NODE "make -C /home/pi/DeepThings $BUILD_OPTIONS &> /dev/null &" 
     done
+
+    make -C /home/pi/DeepThings clean_all &> /dev/null
+    make -C /home/pi/DeepThings $BUILD_OPTIONS &> /dev/null
 }
 
 while [[ $# -gt 0 ]]
@@ -20,12 +29,12 @@ while [[ $# -gt 0 ]]
 
     case $key in
         -s)
-            BUILD_OPTIONS="${BUILD_OPTIONS} -DSKIP_FUSING"
+            BUILD_OPTIONS="${BUILD_OPTIONS} SKIP_FUSING=1"
             shift
             ;;
         -m)
             shift
-            BUILD_OPTIONS="${BUILD_OPTIONS} -DMAX_DEVS=$1"
+            BUILD_OPTIONS="${BUILD_OPTIONS} MAX_EDGE_NUM=$1"
             shift
             ;;
         *)
@@ -33,3 +42,7 @@ while [[ $# -gt 0 ]]
             exit 1
     esac
 done
+
+build_cluster
+
+echo "Cluster rebuilt"
