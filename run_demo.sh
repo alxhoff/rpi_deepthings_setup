@@ -79,13 +79,13 @@ start_gateway()
 start_data_edge()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode data_source -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
 }
 
 start_n_data_edge()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode non_data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode non_data_source -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "nohup .DeepThings/deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
 }
 
 key="$1"
