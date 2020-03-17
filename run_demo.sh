@@ -16,10 +16,11 @@ print_usage()
 
 set_tc_rules()
 {
-       bash $CUR_DIR/ssh_command.sh $1 'tc qdisc del dev eth0 root'
-       bash $CUR_DIR/ssh_command.sh $1 'tc qdisc add dev eth0 root handle 1: htb default 12'
-       bash $CUR_DIR/ssh_command.sh $1 'tc class add dev eth0 parent 1:1 classid 1:12 htb rate 100mbit ceil 100mbit'
-       bash $CUR_DIR/ssh_command.sh $1 'tc qdisc add dev eth0 parent 1:12 netem limit 10000000'
+    echo ""
+       # bash $CUR_DIR/ssh_command.sh $1 'tc qdisc del dev eth0 root'
+       # bash $CUR_DIR/ssh_command.sh $1 'tc qdisc add dev eth0 root handle 1: htb default 12'
+       # bash $CUR_DIR/ssh_command.sh $1 'tc class add dev eth0 parent 1:1 classid 1:12 htb rate 100mbit ceil 100mbit'
+       # bash $CUR_DIR/ssh_command.sh $1 'tc qdisc add dev eth0 parent 1:12 netem limit 10000000'
 }
 
 automatic_run()

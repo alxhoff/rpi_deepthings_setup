@@ -60,11 +60,12 @@ cp deps/pthreadpool/include/pthreadpool.h /usr/include/
 cd ../../ #cd into DeepThings
 make clean_all
 make
-chmod -R 777 ~/DeepThings
+chmod -R 777 /home/pi/DeepThings
 
 if [ ! -z "$1" ]
 then
 	popd # home directory
 fi
 
+cd ..
 touch done

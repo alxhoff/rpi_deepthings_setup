@@ -26,14 +26,14 @@ setup_dev() {
     wait
 }
 
-for NODE in "${CONNECTED_NODES[@]}"
-do
-    echo Setting up $NODE
-    setup_dev $NODE &
-done
-
-./setup_deepthings.sh ../ &
-wait
+# for NODE in "${CONNECTED_NODES[@]}"
+# do
+#     echo Setting up $NODE
+#     setup_dev $NODE &
+# done
+#
+# ./setup_deepthings.sh ../ &
+# wait
 
 # Get demo
 while [ ! -d /home/pi/DeepThings/models ]
@@ -42,11 +42,11 @@ do
 done
 
 if [ ! -f /home/pi/DeepThings/models/yolo.cfg ]; then
-wget -O models/yolo.cfg https://raw.githubusercontent.com/zoranzhao/DeepThings/master/models/yolo.cfg
+wget -O /home/pi/DeepThings/models/yolo.cfg https://raw.githubusercontent.com/zoranzhao/DeepThings/master/models/yolo.cfg
 fi
 
 if [ ! -f /home/pi/DeepThings/models/yolov2.weights ]; then
-wget -O models/yolo.weights https://pjreddie.com/media/files/yolov2.weights
+wget -O /home/pi/DeepThings/models/yolo.weights https://pjreddie.com/media/files/yolov2.weights
 fi
 
 for NODE in "${CONNECTED_NODES[@]}"
@@ -55,7 +55,7 @@ do
     while [[ ! $(sudo bash $CUR_DIR/ssh_command.sh $NODE 'ls /home/pi | grep done') ]]; do
         sleep 1
     done
-    sshpass -p "password" sudo scp -r /home/pi/DeepThings/models pi@$NODE:/home/pi/DeepThings/models
+    sshpass -p "raspberry" sudo scp -r /home/pi/DeepThings/models pi@$NODE:/home/pi/DeepThings/
 done
 
 exit 0
