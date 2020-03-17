@@ -51,6 +51,7 @@ automatic_run()
     echo "Data edge dev: $DATA_EDGE_IP"
     echo "Non-data edge devs: ${NON_DATA_EDGE_IPS[*]}"
 
+    HOST_IP=$DATA_EDGE_IP
     start_gateway $GATEWAY_IP
     start_data_edge $DATA_EDGE_IP
     for IP in "${NON_DATA_EDGE_IPS[@]}"
