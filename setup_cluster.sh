@@ -26,14 +26,14 @@ setup_dev() {
     wait
 }
 
-# for NODE in "${CONNECTED_NODES[@]}"
-# do
-#     echo Setting up $NODE
-#     setup_dev $NODE &
-# done
-#
-# ./setup_deepthings.sh ../ &
-# wait
+for NODE in "${CONNECTED_NODES[@]}"
+do
+    echo Setting up $NODE
+    setup_dev $NODE &
+done
+
+./setup_deepthings.sh ../ &
+wait
 
 # Get demo
 while [ ! -d /home/pi/DeepThings/models ]
