@@ -39,7 +39,7 @@ if [[ -d "DeepThings" ]]; then
 	printf "....Already exists\n"
 else
 	printf "\n"
-	git clone https://github.com/rafzi/DeepThings
+	git clone https://github.com/alxhoff/DeepThings
 	wait
 fi
 
