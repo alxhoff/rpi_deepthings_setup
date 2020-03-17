@@ -5,7 +5,7 @@ if [ "$EUID" -ne 0 ]
 	exit
 fi
 
-if [ ! -z "$1" ] 
+if [ ! -z "$1" ]
 then
 	pushd $1
 fi
@@ -60,19 +60,11 @@ cp deps/pthreadpool/include/pthreadpool.h /usr/include/
 cd ../../ #cd into DeepThings
 make clean_all
 make
+chmod -R 777 ~/DeepThings
 
-#Get demo
-if [ ! -f models/yolo.cfg ]; then
-	wget -O models/yolo.cfg https://raw.githubusercontent.com/zoranzhao/DeepThings/master/models/yolo.cfg
-fi
-
-if [ ! -f models/yolov2.weights ]; then
-	wget -O models/yolo.weights https://pjreddie.com/media/files/yolov2.weights
-fi
-
-if [ ! -z "$1" ] 
+if [ ! -z "$1" ]
 then
-	popd	
+	popd # home directory
 fi
 
 touch done

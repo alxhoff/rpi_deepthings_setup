@@ -17,17 +17,45 @@ echo "Nodes found: ${CONNECTED_NODES[*]}"
 
 setup_dev() {
 	bash $CUR_DIR/ssh_command.sh $1 'sudo rm -rf ~/*'
- 	bash $CUR_DIR/ssh_command.sh $1 'wget https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_deepthings.sh &>/dev/null'
-	bash $CUR_DIR/ssh_command.sh $1 'sudo chmod +x setup_deepthings.sh'
-	bash $CUR_DIR/ssh_command.sh $1 'sudo ./setup_deepthings.sh &>/dev/null &'
+    wait
+    bash $CUR_DIR/ssh_command.sh $1 'wget https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_deepthings.sh' # &>/dev/null'
+    wait
+    bash $CUR_DIR/ssh_command.sh $1 'sudo chmod +x setup_deepthings.sh'
+    wait
+    bash $CUR_DIR/ssh_command.sh $1 'sudo ./setup_deepthings.sh &>/dev/null &'
+    wait
 }
-
-./setup_deepthings.sh ../ &>/dev/null &
 
 for NODE in "${CONNECTED_NODES[@]}"
 do
-	echo Setting up $NODE
-	setup_dev $NODE &
+    echo Setting up $NODE
+    setup_dev $NODE &
+done
+
+./setup_deepthings.sh ../ &
+wait
+
+# Get demo
+while [ ! -d ~/DeepThings/models ]
+do
+    sleep 1
+done
+
+if [ ! -f ~/DeepThings/models/yolo.cfg ]; then
+wget -O models/yolo.cfg https://raw.githubusercontent.com/zoranzhao/DeepThings/master/models/yolo.cfg
+fi
+
+if [ ! -f ~/DeepThings/models/yolov2.weights ]; then
+wget -O models/yolo.weights https://pjreddie.com/media/files/yolov2.weights
+fi
+
+for NODE in "${CONNECTED_NODES[@]}"
+do
+    echo $NODE
+    while [[ ! $(sudo bash $CUR_DIR/ssh_command.sh $NODE 'ls ~ | grep done') ]]; do
+        sleep 1
+    done
+    sshpass -p "password" sudo scp -r ~/DeepThings/models pi@$NODE:~/DeepThings/models
 done
 
 exit 0
