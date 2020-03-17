@@ -63,7 +63,7 @@ automatic_run()
     echo "Start commands sent, waiting a little bit before starting"
     sleep 20
 
-    start_host $HOST_IP
+    #start_host $HOST_IP
 }
 
 start_host()
