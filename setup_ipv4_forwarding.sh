@@ -7,8 +7,8 @@ fi
 
 read -p 'MAC address of internet interface: ' MAC_ADDR
 
-INTERNET_MAC="$(find /sys/class/net -mindepth 1 -maxdepth 1 ! -name lo -printf "%P: " -execdir cat {}/address \; | grep $MAC_ADDR)" 
-CLUSTER_MAC="$(find /sys/class/net -mindepth 1 -maxdepth 1 ! -name lo -printf "%P: " -execdir cat {}/address \; | grep eth | grep -v $MAC_ADDR)" 
+INTERNET_MAC="$(find /sys/class/net -mindepth 1 -maxdepth 1 ! -name lo -printf "%P: " -execdir cat {}/address \; | grep $MAC_ADDR)"
+CLUSTER_MAC="$(find /sys/class/net -mindepth 1 -maxdepth 1 ! -name lo -printf "%P: " -execdir cat {}/address \; | grep eth | grep -v $MAC_ADDR)"
 
 REGEX="(.+): ([0-9a-f]{2}):([0-9a-f]{2}):([0-9a-f]{2}):([0-9a-f]{2}):([0-9a-f]{2}):([0-9a-f]{2})"
 
@@ -36,7 +36,7 @@ iptables -A FORWARD -i $INTERNET_NAME -o $CLUSTER_NAME -m state --state RELATED,
 iptables -A FORWARD -i $CLUSTER_NAME -o $INTERNET_NAME -j ACCEPT
 
 echo "enabling ipv4 forwarding"
-echo 1 > /proc/sys/net/ipv4/ip_forward
+echo 1 | tee -a /proc/sys/net/ipv4/ip_forward
 
 systemctl restart dnsmasq
 

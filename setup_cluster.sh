@@ -18,7 +18,7 @@ echo "Nodes found: ${CONNECTED_NODES[*]}"
 setup_dev() {
 	bash $CUR_DIR/ssh_command.sh $1 'sudo rm -rf ~/*'
     wait
-    bash $CUR_DIR/ssh_command.sh $1 'wget https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_deepthings.sh' # &>/dev/null'
+    bash $CUR_DIR/ssh_command.sh $1 'wget https://raw.githubusercontent.com/alxhoff/rpi_deepthings_setup/master/setup_deepthings.sh &>/dev/null'
     wait
     bash $CUR_DIR/ssh_command.sh $1 'sudo chmod +x setup_deepthings.sh'
     wait
@@ -36,26 +36,26 @@ done
 wait
 
 # Get demo
-while [ ! -d ~/DeepThings/models ]
+while [ ! -d /home/pi/DeepThings/models ]
 do
     sleep 1
 done
 
-if [ ! -f ~/DeepThings/models/yolo.cfg ]; then
+if [ ! -f /home/pi/DeepThings/models/yolo.cfg ]; then
 wget -O models/yolo.cfg https://raw.githubusercontent.com/zoranzhao/DeepThings/master/models/yolo.cfg
 fi
 
-if [ ! -f ~/DeepThings/models/yolov2.weights ]; then
+if [ ! -f /home/pi/DeepThings/models/yolov2.weights ]; then
 wget -O models/yolo.weights https://pjreddie.com/media/files/yolov2.weights
 fi
 
 for NODE in "${CONNECTED_NODES[@]}"
 do
     echo $NODE
-    while [[ ! $(sudo bash $CUR_DIR/ssh_command.sh $NODE 'ls ~ | grep done') ]]; do
+    while [[ ! $(sudo bash $CUR_DIR/ssh_command.sh $NODE 'ls /home/pi | grep done') ]]; do
         sleep 1
     done
-    sshpass -p "password" sudo scp -r ~/DeepThings/models pi@$NODE:~/DeepThings/models
+    sshpass -p "password" sudo scp -r /home/pi/DeepThings/models pi@$NODE:/home/pi/DeepThings/models
 done
 
 exit 0
