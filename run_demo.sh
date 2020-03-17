@@ -10,7 +10,8 @@ print_usage()
     echo "  -n                  FTP dimension N"
     echo "  -m                  FTP dimension M"
     echo "  -l                  Number of fused layers"
-    echo "  (-c)                .conf file to be used for test architecture "
+    echo " (-c)                 .conf file to be used for test architecture "
+    echo " (-t)                 Timeout for deepthing execution on each node, default is 120 seconds"
     exit 0
 }
 
@@ -33,11 +34,6 @@ automatic_run()
     echo "Gateway: $GATEWAY_IP"
     set_tc_rules $GATEWAY_IP
 
-    #Host dev is connected to wlan0
-    HOST_IP=($(bash $CUR_DIR/get_nodes.sh wlan0))
-
-    echo "Host: $HOST_IP"
-
     #All other devs on eth0 are edge devices
     EDGE_NODE_IPS=($(bash $CUR_DIR/get_nodes.sh eth0))
     for IP in "${EDGE_NODE_IPS[@]}"
@@ -47,54 +43,53 @@ automatic_run()
 
     echo "Edge devs: ${EDGE_NODE_IPS[*]}"
     DATA_EDGE_IP="${EDGE_NODE_IPS[0]}"
-    NON_DATA_EDGE_IPS="${EDGE_NODE_IPS[@]:2}"
-    echo "Data edge dev: $DATA_EDGE_IP"
+    HOST_IP=$DATA_EDGE_IP
+    NON_DATA_EDGE_IPS="${EDGE_NODE_IPS[@]:1}"
+    echo "Data edge/Host dev: $DATA_EDGE_IP"
     echo "Non-data edge devs: ${NON_DATA_EDGE_IPS[*]}"
 
-    HOST_IP=$DATA_EDGE_IP
     start_gateway $GATEWAY_IP
     start_data_edge $DATA_EDGE_IP
     for IP in "${NON_DATA_EDGE_IPS[@]}"
     do
-	start_n_data_edge $IP
+        start_n_data_edge $IP
     done
-    start_n_data_debug_edge $IP
 
     echo "Start commands sent, waiting a little bit before starting"
     sleep 20
 
-    #start_host $HOST_IP
+    start_host $HOST_IP
+    echo "Host started, waiting for $DEFAULT_TIMEOUT seconds for timeout"
+
+    sleep $DEFAULT_TIMEOUT
 }
 
 start_host()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode start > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup ./DeepThings/deepthings -mode start > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "timeout $DEFAULT_TIMEOUT ./DeepThings/deepthings -mode start > /dev/null 2>&1 &"
 }
 
 start_gateway()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup ./DeepThings/deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "timeout $DEFAULT_TIMEOUT ./DeepThings/deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
 }
 
 start_data_edge()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup ./DeepThings/deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "timeout $DEFAULT_TIMEOUT ./DeepThings/deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
 }
 
 start_n_data_edge()
 {
         # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode non_data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "nohup ./DeepThings/deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "timeout $DEFAULT_TIMEOUT ./DeepThings/deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
 }
 
-start_n_data_debug_edge()
-{
-        # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode non_data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "gdbserver :2222 ./DeepThings/deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS &"
-}
+
+DEFAULT_TIMEOUT=120
 
 key="$1"
 while [[ $# -gt 0 ]]
@@ -125,6 +120,10 @@ while [[ $# -gt 0 ]]
         ;;
     -c ) shift
         CONF_FILE=$1
+        shift
+        ;;
+    -t) shift
+        DEFAULT_TIMEOUT=$1
         shift
         ;;
     * )
