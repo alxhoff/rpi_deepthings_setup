@@ -44,6 +44,17 @@ Now the gateway RPi needs to be configured such that it can forward ipv4 traffic
 
 The cluster (including the gateway device) need to have DeepThings setup and the depedency packages installed. This is done with [`setup_deepthings.sh`](setup_deepthings.sh) which is quite a straight forward process. To invoke the running on this on all devices in the cluster invoke the [`setup_cluster.sh`](setup_cluster.sh) script. This script will distribute and run [`setup_deepthings.sh`](setup_deepthings.sh) on all cluster devices (include gateway). After this you should be ready to go running tests. 
 
+### Rebuilding DeepThings for cluser size
+
+The size of the edge node cluster (total RPi count - 1 (gateway node)) will need to be modified to perform tests. As DeepThings hardcodes the device IPs and more specifically the device count, see [here](https://github.com/alxhoff/DeepThings/blob/64d4bdfd29dc7c6326a9257931ee4157e45ccb7e/include/configure.h#L34). The IP addresse array [here](https://github.com/alxhoff/DeepThings/blob/64d4bdfd29dc7c6326a9257931ee4157e45ccb7e/include/configure.h#L26) shouldn't need to be modified unless the cluster's architecture changes. The helper script [`rebuild_cluster`](rebuild_cluster.sh) takes two arguments that are passed to `make` as [`MAX_EDGE_NUM`](https://github.com/alxhoff/DeepThings/blob/64d4bdfd29dc7c6326a9257931ee4157e45ccb7e/include/configure.h#L33) and [`SKIP_FUSING`](https://github.com/alxhoff/DeepThings/blob/64d4bdfd29dc7c6326a9257931ee4157e45ccb7e/src/weight_partitioner.c#L155), `-m` specifies the number of edge devices that are to be used (the IP's of which will be the first n entries in the IP address array) and `-s` will skip fusing.
+
+For example, to rebuild DeepThings across the cluster for 3 devices, skipping fusion, would be done with:
+
+```bash
+sudo ./rebuild_cluster -m 3 -s
+
+```
+
 # Running Tests
 
 Test involve the setup of a test system architecture where each device must be given its role in the DeepThings system. See [DeepThings](https://github.com/rafzi/DeepThings#running) for the manual setup of a test. To help automate this the script [`run_demo.sh`](run_demo.sh) allows for automatic disstribution of a test or the preconfiguration of a test through a `.conf` file, such as [`devices.conf`](devices.conf).
