@@ -75,3 +75,11 @@ E1n 192.168.1.13
 ```
 Meaning that the DeepThing's test architecture has a host device @ 192.168.1.201, a gateway device @ 102.168.1.2, a data-source edge device with the numeric identifier 0 @ 192.168.1.12 and finally a non-data-source edge device with the numeric identifier 1 @ 192.168.1.13.
 
+# Automatic testing of entire cluster
+
+Assuming that the IP addresses are set correctly in [`configure.h`](https://github.com/alxhoff/DeepThings/blob/64d4bdfd29dc7c6326a9257931ee4157e45ccb7e/include/configure.h#L34) then the script [`run_demo_set`](run_demo_set.sh) will automate testing of the cluster given the appropriate arguments. `-d` giving the maximum number of devices wanting to be tested, `-t` for the number of tests to be performed per cluster configuration and the options `-n`,`-m` and `-l` are the same as for [`run_demo`](run_demo.sh).
+
+# Results
+
+The DeepThings library was modified such that results from each test are appended to a file appearing on the data source edge node called `result_times.txt`. The format of the output results is the time of the test (in milliseconds) followed by the edge device count used and if fusion was skipped or not. See [this](https://github.com/alxhoff/DeepThings/commit/543b28a368fc15f20ceea5273d40e26bd3e6afd1) commit.
+
