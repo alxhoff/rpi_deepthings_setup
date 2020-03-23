@@ -90,7 +90,7 @@ do
 		do
 			echo ""
 			echo "###################################################"
-			echo "Running test $TEST for $DEVICE devs without skipping and with TC speed: $TC_SPEED"
+			echo "Running test $TEST/$TEST_NUM for $DEVICE devs without skipping and with TC speed: $TC_SPEED"
 			echo "###################################################"
 			echo ""
 			if [ $TC_SPEED -ne 0 ]; then
@@ -112,7 +112,7 @@ do
 		do
 			echo ""
 			echo "###################################################"
-			echo "Running test $TEST for $DEVICE devs with skipping and TC speed: $TC_SPEED"
+			echo "Running test $TEST/$TEST_NUM for $DEVICE devs with skipping and TC speed: $TC_SPEED"
 			echo "###################################################"
 			echo ""
 			if [ $TC_SPEED -ne 0 ]; then

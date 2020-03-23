@@ -19,13 +19,11 @@ print_usage()
 reset_tc_rules()
 {
        bash $CUR_DIR/ssh_command.sh $1 'sudo tc qdisc del dev eth0 root > /dev/null 2>&1'
-       echo "Reset TC on $1 for eth0"
 }
 
 set_tc_rules() 
 {
 	reset_tc_rules $1
-	echo "Setting TC limit to $2"
        	bash $CUR_DIR/ssh_command.sh $1 'sudo tc qdisc add dev eth0 root handle 1: htb default 12'
        	bash $CUR_DIR/ssh_command.sh $1 "sudo tc class add dev eth0 parent 1:1 classid 1:12 htb rate $2mbit ceil $2mbit"
        	bash $CUR_DIR/ssh_command.sh $1 'sudo tc qdisc add dev eth0 parent 1:12 netem limit 10000000'
@@ -34,25 +32,22 @@ set_tc_rules()
 automatic_run()
 {
     EDGE_ID=0
-    echo "Automatic run!"
 
     #Current device is set as gateway
     GATEWAY_IP=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
-
-    echo "Gateway: $GATEWAY_IP"
 
     #All other devs on eth0 are edge devices
     EDGE_NODE_IPS=($(bash $CUR_DIR/get_nodes.sh eth0))
 
     if  [ ! -z "$TC_LIMIT" ]; then
-	echo "Using TC with limit @ $TC_LIMIT"
+	#echo "Using TC with limit @ $TC_LIMIT"
 	set_tc_rules $GATEWAY_IP $TC_LIMIT
     	for IP in "${EDGE_NODE_IPS[@]}"
     	do
     	    set_tc_rules $IP $TC_LIMIT
     	done
     else 
-	echo "Not using TC, resetting interface"
+	#echo "Not using TC, resetting interface"
 	reset_tc_rules $GATEWAY_IP
     	for IP in "${EDGE_NODE_IPS[@]}"
     	do
@@ -60,12 +55,9 @@ automatic_run()
     	done
     fi
 
-    echo "Edge devs: ${EDGE_NODE_IPS[*]}"
     DATA_EDGE_IP="${EDGE_NODE_IPS[0]}"
     HOST_IP=$DATA_EDGE_IP
     NON_DATA_EDGE_IPS="${EDGE_NODE_IPS[@]:1}"
-    echo "Data edge/Host dev: $DATA_EDGE_IP"
-    echo "Non-data edge devs: ${NON_DATA_EDGE_IPS[*]}"
 
     start_gateway $GATEWAY_IP
     start_data_edge $DATA_EDGE_IP $EDGE_ID
@@ -76,11 +68,11 @@ automatic_run()
         EDGE_ID=$((EDGE_ID+1))
     done
 
-    echo "Start commands sent, waiting a little bit before starting"
+    #echo "Start commands sent, waiting a little bit before starting"
     sleep 30
 
     start_host $HOST_IP
-    echo "Host started, waiting for $DEFAULT_TIMEOUT seconds for timeout"
+    #echo "Host started, waiting for $DEFAULT_TIMEOUT seconds for timeout"
 
     sleep $DEFAULT_TIMEOUT
 }
@@ -88,29 +80,29 @@ automatic_run()
 start_host()
 {
 	bash $CUR_DIR/ssh_command.sh $1 "cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode start" > /home/pi/host.log 2>&1 &
-	echo "HOST: ./deepthings -mode start"
+	#echo "HOST @ $1: ./deepthings -mode start"
 }
 
 start_gateway()
 {
 	bash $CUR_DIR/ssh_command.sh $1 "cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS" > /home/pi/gateway.log 2>&1 &
-	echo "GATEWAY: ./deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS"
+	#echo "GATEWAY @ $1: ./deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS"
 }
 
 start_data_edge()
 {
 	bash $CUR_DIR/ssh_command.sh $1 "cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS" > /home/pi/data_src.log 2>&1 &
-	echo "DATA EDGE: ./deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS"
+	#echo "DATA EDGE @ $1: ./deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS"
 }
 
 start_n_data_edge()
 {
 	bash $CUR_DIR/ssh_command.sh $1 "cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS" > /home/pi/n_data_src_$2.log 2>&1 &
-	echo "EDGE DEV #$2: ./deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS"
+	#echo "EDGE DEV #$2 @ $1: ./deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS"
 }
 
 
-DEFAULT_TIMEOUT=60
+DEFAULT_TIMEOUT=120
 
 key="$1"
 while [[ $# -gt 0 ]]
@@ -161,8 +153,6 @@ done
 if [ -z "$TOTAL_EDGE" ] || [ -z "$FTP_N" ] || [ -z "$FTP_M" ] || [ -z "$LAYERS" ]; then
     echo "Not all required options given, see --help for usage"
     exit 1
-else
-    echo "Running with $TOTAL_EDGE edge device, $FTP_N x $FTP_M FTP dimensions and $LAYERS layers"
 fi
 
 if ! test -z "$CONF_FILE"

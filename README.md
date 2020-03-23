@@ -81,5 +81,5 @@ Assuming that the IP addresses are set correctly in [`configure.h`](https://gith
 
 # Results
 
-The DeepThings library was modified such that results from each test are appended to a file appearing on the data source edge node called `result_times.txt`. The format of the output results is the time of the test (in milliseconds) followed by the edge device count used and if fusion was skipped or not. See [this](https://github.com/alxhoff/DeepThings/commit/543b28a368fc15f20ceea5273d40e26bd3e6afd1) commit.
+The DeepThings library was modified such that results from each test are appended to a file appearing on the data source edge node called `result_times.txt`. The format of the output results is the time of the test (in milliseconds) followed by the edge device count used and if fusion was skipped or not. See [this](https://github.com/alxhoff/DeepThings/commit/543b28a368fc15f20ceea5273d40e26bd3e6afd1) commit. If using [`run_demo_set`](run_demo_set.sh) then the final results are pulled into this directory with the format `results${DEVICE_COUNT}_devs_${TEST_COUNT}_tests.txt`.
 
