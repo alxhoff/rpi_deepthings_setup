@@ -17,7 +17,7 @@ print_usage()
 
 set_tc_rules()
 {
-    echo ""
+	echo ""
        # bash $CUR_DIR/ssh_command.sh $1 'tc qdisc del dev eth0 root'
        # bash $CUR_DIR/ssh_command.sh $1 'tc qdisc add dev eth0 root handle 1: htb default 12'
        # bash $CUR_DIR/ssh_command.sh $1 'tc class add dev eth0 parent 1:1 classid 1:12 htb rate 100mbit ceil 100mbit'
@@ -26,20 +26,21 @@ set_tc_rules()
 
 automatic_run()
 {
+    EDGE_ID=0
     echo "Automatic run!"
 
     #Current device is set as gateway
     GATEWAY_IP=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
 
     echo "Gateway: $GATEWAY_IP"
-    set_tc_rules $GATEWAY_IP
+    #set_tc_rules $GATEWAY_IP
 
     #All other devs on eth0 are edge devices
     EDGE_NODE_IPS=($(bash $CUR_DIR/get_nodes.sh eth0))
-    for IP in "${EDGE_NODE_IPS[@]}"
-    do
-        set_tc_rules $IP
-    done
+    #for IP in "${EDGE_NODE_IPS[@]}"
+    #do
+    #    set_tc_rules $IP
+    #done
 
     echo "Edge devs: ${EDGE_NODE_IPS[*]}"
     DATA_EDGE_IP="${EDGE_NODE_IPS[0]}"
@@ -49,14 +50,17 @@ automatic_run()
     echo "Non-data edge devs: ${NON_DATA_EDGE_IPS[*]}"
 
     start_gateway $GATEWAY_IP
-    start_data_edge $DATA_EDGE_IP
-    for IP in "${NON_DATA_EDGE_IPS[@]}"
+    start_data_edge $DATA_EDGE_IP $EDGE_ID
+    EDGE_ID=$((EDGE_ID+1))
+    for IP in ${NON_DATA_EDGE_IPS[@]}
     do
-        start_n_data_edge $IP
+	echo "NDE: $IP"
+        start_n_data_edge $IP $EDGE_ID
+        EDGE_ID=$((EDGE_ID+1))
     done
 
     echo "Start commands sent, waiting a little bit before starting"
-    sleep 20
+    sleep 30
 
     start_host $HOST_IP
     echo "Host started, waiting for $DEFAULT_TIMEOUT seconds for timeout"
@@ -66,26 +70,26 @@ automatic_run()
 
 start_host()
 {
-        # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode start > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "timeout $DEFAULT_TIMEOUT ./DeepThings/deepthings -mode start > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode start" > /home/pi/host.log 2>&1 &
+	echo "bash $CUR_DIR/ssh_command.sh $1 'cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode start > /dev/null 2>&1 &'"
 }
 
 start_gateway()
 {
-        # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "timeout $DEFAULT_TIMEOUT ./DeepThings/deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS" > /home/pi/gateway.log 2>&1 &
+	echo "bash $CUR_DIR/ssh_command.sh $1 'cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode gateway -total_edge $TOTAL_EDGE -n $FTP_N -m $FTP_M -l $LAYERS > /home/pi/gateway.log 2>&1 &'"
 }
 
 start_data_edge()
 {
-        # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "timeout $DEFAULT_TIMEOUT ./DeepThings/deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS" > /home/pi/data_src.log 2>&1 &
+	echo "bash $CUR_DIR/ssh_command.sh $1 'cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS'"
 }
 
 start_n_data_edge()
 {
-        # ssh -n -f pi@$DEV_IP "sh -c 'cd /DeepThings; nohup ./deepthings -mode non_data_source -edge_id $EDGE_DEV_NUM -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &'"
-	bash $CUR_DIR/ssh_command.sh $1 "timeout $DEFAULT_TIMEOUT ./DeepThings/deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /dev/null 2>&1 &"
+	bash $CUR_DIR/ssh_command.sh $1 "cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS" > /home/pi/n_data_src_$2.log 2>&1 &
+	echo "bash $CUR_DIR/ssh_command.sh $1 'cd /home/pi/DeepThings && timeout $DEFAULT_TIMEOUT ./deepthings -mode non_data_src -total_edge $TOTAL_EDGE -edge_id $2 -n $FTP_N -m $FTP_M -l $LAYERS > /home/pi/n_data_$2.log 2>&1 &'"
 }
 
 
