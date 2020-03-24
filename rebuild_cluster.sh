@@ -13,7 +13,7 @@ BUILD_OPTIONS=""
 build_cluster(){
     for NODE in "${CONNECTED_NODES[@]}"
     do
-	echo "Started build on $NODE with build options '$BUILD_OPTIONS'"
+	#echo "Started build on $NODE with build options '$BUILD_OPTIONS'"
         bash $CUR_DIR/ssh_command.sh $NODE "make -C /home/pi/DeepThings clean_all &> /dev/null" 
         wait
         bash $CUR_DIR/ssh_command.sh $NODE "make -C /home/pi/DeepThings $BUILD_OPTIONS &> /dev/null &" 

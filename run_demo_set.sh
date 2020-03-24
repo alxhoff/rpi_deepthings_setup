@@ -22,6 +22,18 @@ print_usage()
 	echo " (-ds)    Gateway device IP for retrieving results"
 }
 
+log_test_header()
+{
+	LOG_DEV_IP=$1
+	CUR_TEST=$2
+	TOTAL_TEST_NUM=$3
+	CUR_DEV_COUNT=$4
+	TOTAL_DEV_COUNT=$5
+	NET_SPEED=$6
+
+	bash $CUR_DIR/ssh_command.sh $LOG_DEV_IP "echo 'test $CUR_TEST/$TOTAL_TEST_NUM @ $NET_SPEED with $CUR_DEV_COUNT/$TOTAL_DEV_COUNT devs' >> /home/pi/DeepThings/result_times.txt"
+}
+
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 key=$1
@@ -76,8 +88,10 @@ if [ -z "$DEVICE_COUNT" ] || [ -z "$TEST_NUM" ]; then
 	echo 1
 fi
 
+DEV_SEQ=$(seq $DEVICE_COUNT)
+TEST_SEQ=$(seq $TEST_NUM)
 
-for DEVICE in $(seq 1 $DEVICE_COUNT)
+for DEVICE in $DEV_SEQ
 do
 	echo "Rebuilding cluster for $DEVICE devs, not skipping fusion"
 	bash $CUR_DIR/rebuild_cluster.sh -m $DEVICE
@@ -86,13 +100,15 @@ do
 
 	for TC_SPEED in "${TC_SPEEDS[@]}"
 	do
-		for TEST in $(seq 1 $TEST_NUM)
+		for TEST in $TEST_SEQ
 		do
-			echo ""
 			echo "###################################################"
 			echo "Running test $TEST/$TEST_NUM for $DEVICE devs without skipping and with TC speed: $TC_SPEED"
-			echo "###################################################"
-			echo ""
+
+			if [ ! -z "$DS_DEV_IP" ]; then
+				log_test_header $DS_DEV_IP $TEST $TEST_NUM $DEVICE $DEVICE_COUNT $TC_SPEED
+			fi			
+
 			if [ $TC_SPEED -ne 0 ]; then
 				bash run_demo.sh -e $DEVICE -n $FTP_N -m $FTP_M -l $FUSED_LAYERS -tc $TC_SPEED
 			else
@@ -100,6 +116,7 @@ do
 			fi
 		done
 	done
+	echo "###################################################"
 
 	echo "Rebuilding cluster for $DEVICE devs, skipping fusion"
 	bash $CUR_DIR/rebuild_cluster.sh -m $DEVICE -s
@@ -108,13 +125,15 @@ do
 
 	for TC_SPEED in "${TC_SPEEDS[@]}"
 	do
-		for TEST in $(seq 1 $TEST_NUM)
+		for TEST in $TEST_SEQ
 		do
-			echo ""
 			echo "###################################################"
 			echo "Running test $TEST/$TEST_NUM for $DEVICE devs with skipping and TC speed: $TC_SPEED"
-			echo "###################################################"
-			echo ""
+
+			if [ ! -z "$DS_DEV_IP" ]; then
+				log_test_header $DS_DEV_IP $TEST $TEST_NUM $DEVICE $DEVICE_COUNT $TC_SPEED
+			fi			
+
 			if [ $TC_SPEED -ne 0 ]; then
 				bash run_demo.sh -e $DEVICE -n $FTP_N -m $FTP_M -l $FUSED_LAYERS -tc $TC_SPEED
 			else
@@ -122,7 +141,8 @@ do
 			fi
 		done
 	done
+	echo "###################################################"
 done	
 if [ ! -z "$DS_DEV_IP" ]; then 
-	scp pi@$DS_DEV_IP:/home/pi/DeepThings/result_times.txt results_${DEVICE_COUNT}_devs_${TEST_COUNT}_tests.txt
+	sshpass -p "raspberry" scp pi@$DS_DEV_IP:/home/pi/DeepThings/result_times.txt results_${DEVICE_COUNT}_devs_${TEST_NUM}_tests.txt
 fi
