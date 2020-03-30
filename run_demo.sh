@@ -2,6 +2,11 @@
 
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+if [ "$EUID" -ne 0 ];then 
+	echo "Please run as root"
+	exit
+fi
+
 print_usage()
 {
     echo "Usage : $0 [-e -n -m -l (-c)]"
@@ -19,14 +24,22 @@ print_usage()
 reset_tc_rules()
 {
        bash $CUR_DIR/ssh_command.sh $1 'sudo tc qdisc del dev eth0 root > /dev/null 2>&1'
+       bash $CUR_DIR/ssh_command.sh $1 'sudo tc qdisc del dev ifb0 root > /dev/null 2>&1'
 }
 
 set_tc_rules() 
 {
+	bash $CUR_DIR/ssh_command.sh $1 "sudo modprobe ifb numifbs=1"
 	reset_tc_rules $1
        	bash $CUR_DIR/ssh_command.sh $1 'sudo tc qdisc add dev eth0 root handle 1: htb default 12'
-       	bash $CUR_DIR/ssh_command.sh $1 "sudo tc class add dev eth0 parent 1:1 classid 1:12 htb rate $2mbit ceil $2mbit"
-       	bash $CUR_DIR/ssh_command.sh $1 'sudo tc qdisc add dev eth0 parent 1:12 netem limit 10000000'
+       	bash $CUR_DIR/ssh_command.sh $1 "sudo tc class add dev eth0 parent 1: classid 1:1 htb rate $2mbit"
+       	bash $CUR_DIR/ssh_command.sh $1 "sudo tc class add dev eth0 parent 1:1 classid 1:12 htb rate $2mbit"
+	bash $CUR_DIR/ssh_command.sh $1 "sudo tc qdisc add dev ifb0 root handle 1: htb default 12"
+	bash $CUR_DIR/ssh_command.sh $1 "sudo tc class add dev ifb0 parent 1: classid 1:1 htb rate $2mbit"
+	bash $CUR_DIR/ssh_command.sh $1 "sudo tc class add dev ifb0 parent 1:1 classid 1:12 htb rate $2mbit"
+       	
+	#bash $CUR_DIR/ssh_command.sh $1 "sudo tc class add dev eth0 parent 1:1 classid 1:12 htb rate $2mbit ceil $2mbit"
+       	#bash $CUR_DIR/ssh_command.sh $1 'sudo tc qdisc add dev eth0 parent 1:12 netem limit 10000000'
 }
 
 automatic_run()
@@ -102,7 +115,7 @@ start_n_data_edge()
 }
 
 
-DEFAULT_TIMEOUT=120
+DEFAULT_TIMEOUT=150
 
 key="$1"
 while [[ $# -gt 0 ]]
@@ -175,7 +188,7 @@ then
 
             H )
                 echo "Host device $DEV_IP"
-		        start_host $DEV_IP
+		start_host $DEV_IP
                 ;;
 
             G )

@@ -88,7 +88,7 @@ if [ -z "$DEVICE_COUNT" ] || [ -z "$TEST_NUM" ]; then
 	echo 1
 fi
 
-DEV_SEQ=$(seq $DEVICE_COUNT)
+DEV_SEQ=$(seq $DEVICE_COUNT -1 1)
 TEST_SEQ=$(seq $TEST_NUM)
 
 for DEVICE in $DEV_SEQ
